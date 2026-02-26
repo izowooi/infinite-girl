@@ -5,6 +5,8 @@ import { findCombination, saveCombination } from '@/lib/supabase';
 import { generateCombination } from '@/lib/openai';
 import type { CombineRequest, CombineResponse } from '@/types/game';
 
+export const runtime = 'edge';
+
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as CombineRequest;
