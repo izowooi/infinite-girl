@@ -9,7 +9,7 @@ export async function generateCombination(
   nameB: string
 ): Promise<{ name: string; emoji: string }> {
   const response = await openai.chat.completions.create({
-    model: 'gpt-5-nano-2025-08-07',
+    model: 'gpt-5-mini-2025-08-07',
     messages: [
       {
         role: 'developer',
@@ -64,7 +64,8 @@ export async function generateCombination(
         },
       },
     },
-    max_completion_tokens: 8192,
+    reasoning_effort: 'low',
+    max_completion_tokens: 2000,
   });
 
   // 디버깅 로그
