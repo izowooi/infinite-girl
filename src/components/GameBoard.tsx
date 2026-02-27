@@ -4,50 +4,48 @@ import { useEffect, useCallback } from 'react';
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useGameStore } from '@/store/gameStore';
 import { getCombinationKey } from '@/lib/cache';
-import type { Element } from '@/types/game';
-import ElementGrid from './ElementGrid';
+import type { Word } from '@/types/game';
+import WordGrid from './WordGrid';
 import CombinationZone from './CombinationZone';
-import NewElementToast from './NewElementToast';
+import NewWordToast from './NewWordToast';
 
 interface GameBoardProps {
-  initialElements: Element[];
+  initialWords: Word[];
 }
 
-export default function GameBoard({ initialElements }: GameBoardProps) {
+export default function GameBoard({ initialWords }: GameBoardProps) {
   const {
-    elements,
+    words,
     selectedSlots,
     isLoading,
-    newElement,
-    initElements,
-    addElement,
-    selectElement,
+    newWord,
+    initWords,
+    addWord,
+    selectWord,
     clearSlot,
     clearSlots,
     setCacheEntry,
     getCacheEntry,
     setLoading,
-    setNewElement,
+    setNewWord,
   } = useGameStore();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
 
-  // 초기 원소 로드
   useEffect(() => {
-    initElements(initialElements);
-  }, [initElements, initialElements]);
+    initWords(initialWords);
+  }, [initWords, initialWords]);
 
   const handleCombine = useCallback(async () => {
-    const [elemA, elemB] = selectedSlots;
-    if (!elemA || !elemB) return;
+    const [wordA, wordB] = selectedSlots;
+    if (!wordA || !wordB) return;
 
-    // 클라이언트 캐시 확인
-    const cacheKey = getCombinationKey(elemA.id, elemB.id);
+    const cacheKey = getCombinationKey(wordA.id, wordB.id);
     const cached = getCacheEntry(cacheKey);
     if (cached) {
-      addElement(cached);
+      addWord(cached);
       clearSlots();
       return;
     }
@@ -58,25 +56,24 @@ export default function GameBoard({ initialElements }: GameBoardProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          elementAId: elemA.id,
-          elementBId: elemB.id,
-          elementAName: elemA.name,
-          elementBName: elemB.name,
+          wordAId: wordA.id,
+          wordBId: wordB.id,
+          wordAName: wordA.name,
+          wordBName: wordB.name,
         }),
       });
 
       if (!res.ok) throw new Error('조합 실패');
 
-      const data = await res.json() as { result: Element; isNew: boolean };
+      const data = await res.json() as { result: Word; isNew: boolean };
       const { result, isNew } = data;
 
-      // 클라이언트 캐시에 저장
       setCacheEntry(cacheKey, result);
-      addElement(result);
+      addWord(result);
       clearSlots();
 
       if (isNew) {
-        setNewElement(result);
+        setNewWord(result);
       }
     } catch (err) {
       console.error(err);
@@ -84,7 +81,7 @@ export default function GameBoard({ initialElements }: GameBoardProps) {
     } finally {
       setLoading(false);
     }
-  }, [selectedSlots, getCacheEntry, addElement, clearSlots, setCacheEntry, setLoading, setNewElement]);
+  }, [selectedSlots, getCacheEntry, addWord, clearSlots, setCacheEntry, setLoading, setNewWord]);
 
   // 2개 선택되면 자동 조합
   useEffect(() => {
@@ -102,29 +99,26 @@ export default function GameBoard({ initialElements }: GameBoardProps) {
       const overId = over.id as string;
       if (overId !== 'slot-0' && overId !== 'slot-1') return;
 
-      // draggable id는 "grid-{elementId}" 형식
-      const elementId = (active.id as string).replace('grid-', '');
-      const element = elements.find((e) => e.id === elementId);
-      if (!element) return;
+      const wordId = (active.id as string).replace('grid-', '');
+      const word = words.find((w) => w.id === wordId);
+      if (!word) return;
 
       const slotIndex = overId === 'slot-0' ? 0 : 1;
-      const newSlots: [Element | null, Element | null] = [...selectedSlots] as [Element | null, Element | null];
-      newSlots[slotIndex] = element;
+      const newSlots: [Word | null, Word | null] = [...selectedSlots] as [Word | null, Word | null];
+      newSlots[slotIndex] = word;
 
-      // store 직접 업데이트 대신 selectElement 사용
       if (slotIndex === 0) {
-        useGameStore.setState({ selectedSlots: [element, newSlots[1]] });
+        useGameStore.setState({ selectedSlots: [word, newSlots[1]] });
       } else {
-        useGameStore.setState({ selectedSlots: [newSlots[0], element] });
+        useGameStore.setState({ selectedSlots: [newSlots[0], word] });
       }
     },
-    [elements, selectedSlots]
+    [words, selectedSlots]
   );
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="flex flex-col gap-8">
-        {/* 조합 영역 */}
         <section className="bg-white rounded-3xl shadow-sm p-6 flex justify-center">
           <CombinationZone
             slots={selectedSlots}
@@ -134,18 +128,16 @@ export default function GameBoard({ initialElements }: GameBoardProps) {
           />
         </section>
 
-        {/* 원소 그리드 */}
         <section className="bg-white rounded-3xl shadow-sm p-6">
-          <ElementGrid
-            elements={elements}
+          <WordGrid
+            words={words}
             selectedSlots={selectedSlots}
-            onSelectElement={selectElement}
+            onSelectWord={selectWord}
           />
         </section>
       </div>
 
-      {/* 첫 발견 토스트 */}
-      <NewElementToast element={newElement} onClose={() => setNewElement(null)} />
+      <NewWordToast word={newWord} onClose={() => setNewWord(null)} />
     </DndContext>
   );
 }

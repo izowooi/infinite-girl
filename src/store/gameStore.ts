@@ -2,83 +2,81 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Element } from '@/types/game';
+import type { Word } from '@/types/game';
 
 interface GameState {
   // 지속성 저장 상태
-  elements: Element[];
-  combinationCache: Record<string, Element>; // "idA:idB" → result
+  words: Word[];
+  combinationCache: Record<string, Word>; // "idA:idB" → result
 
   // 세션 임시 상태 (저장 안함)
-  selectedSlots: [Element | null, Element | null];
+  selectedSlots: [Word | null, Word | null];
   isLoading: boolean;
-  newElement: Element | null;
+  newWord: Word | null;
 
   // 액션
-  initElements: (elements: Element[]) => void;
-  addElement: (element: Element) => void;
-  selectElement: (element: Element) => void;
+  initWords: (words: Word[]) => void;
+  addWord: (word: Word) => void;
+  selectWord: (word: Word) => void;
   clearSlot: (index: 0 | 1) => void;
   clearSlots: () => void;
-  setCacheEntry: (key: string, element: Element) => void;
-  getCacheEntry: (key: string) => Element | undefined;
+  setCacheEntry: (key: string, word: Word) => void;
+  getCacheEntry: (key: string) => Word | undefined;
   setLoading: (loading: boolean) => void;
-  setNewElement: (element: Element | null) => void;
+  setNewWord: (word: Word | null) => void;
 }
 
 export const useGameStore = create<GameState>()(
   persist(
     (set, get) => ({
-      elements: [],
+      words: [],
       combinationCache: {},
       selectedSlots: [null, null],
       isLoading: false,
-      newElement: null,
+      newWord: null,
 
-      initElements: (elements) => {
-        const existing = get().elements;
+      initWords: (words) => {
+        const existing = get().words;
         if (existing.length === 0) {
-          set({ elements });
+          set({ words });
         } else {
-          // 기존 발견 원소 유지 + 초기 원소만 없으면 추가
-          const existingIds = new Set(existing.map((e) => e.id));
-          const missing = elements.filter((e) => !existingIds.has(e.id));
+          const existingIds = new Set(existing.map((w) => w.id));
+          const missing = words.filter((w) => !existingIds.has(w.id));
           if (missing.length > 0) {
-            set({ elements: [...existing, ...missing] });
+            set({ words: [...existing, ...missing] });
           }
         }
       },
 
-      addElement: (element) => {
-        const existing = get().elements;
-        if (!existing.find((e) => e.id === element.id)) {
-          set({ elements: [...existing, element] });
+      addWord: (word) => {
+        const existing = get().words;
+        if (!existing.find((w) => w.id === word.id)) {
+          set({ words: [...existing, word] });
         }
       },
 
-      selectElement: (element) => {
+      selectWord: (word) => {
         const [slot0, slot1] = get().selectedSlots;
         if (slot0 === null) {
-          set({ selectedSlots: [element, slot1] });
+          set({ selectedSlots: [word, slot1] });
         } else if (slot1 === null) {
-          set({ selectedSlots: [slot0, element] });
+          set({ selectedSlots: [slot0, word] });
         } else {
-          // 둘 다 채워진 경우 첫 번째 교체
-          set({ selectedSlots: [element, slot1] });
+          set({ selectedSlots: [word, slot1] });
         }
       },
 
       clearSlot: (index) => {
-        const slots = [...get().selectedSlots] as [Element | null, Element | null];
+        const slots = [...get().selectedSlots] as [Word | null, Word | null];
         slots[index] = null;
         set({ selectedSlots: slots });
       },
 
       clearSlots: () => set({ selectedSlots: [null, null] }),
 
-      setCacheEntry: (key, element) => {
+      setCacheEntry: (key, word) => {
         set((state) => ({
-          combinationCache: { ...state.combinationCache, [key]: element },
+          combinationCache: { ...state.combinationCache, [key]: word },
         }));
       },
 
@@ -86,12 +84,12 @@ export const useGameStore = create<GameState>()(
 
       setLoading: (loading) => set({ isLoading: loading }),
 
-      setNewElement: (element) => set({ newElement: element }),
+      setNewWord: (word) => set({ newWord: word }),
     }),
     {
       name: 'infinite-girl-game',
       partialize: (state) => ({
-        elements: state.elements,
+        words: state.words,
         combinationCache: state.combinationCache,
       }),
     }

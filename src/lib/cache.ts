@@ -1,7 +1,7 @@
-import type { Element } from '@/types/game';
+import type { Word } from '@/types/game';
 
 interface CacheEntry {
-  result: Element;
+  result: Word;
   expiresAt: number;
 }
 
@@ -9,12 +9,12 @@ interface CacheEntry {
 const combinationCache = new Map<string, CacheEntry>();
 const TTL_MS = 1000 * 60 * 60; // 1시간
 
-export function getCombinationKey(elementAId: string, elementBId: string): string {
-  const [a, b] = [elementAId, elementBId].sort();
+export function getCombinationKey(wordAId: string, wordBId: string): string {
+  const [a, b] = [wordAId, wordBId].sort();
   return `${a}:${b}`;
 }
 
-export function getCached(key: string): Element | null {
+export function getCached(key: string): Word | null {
   const entry = combinationCache.get(key);
   if (!entry) return null;
   if (Date.now() > entry.expiresAt) {
@@ -24,9 +24,9 @@ export function getCached(key: string): Element | null {
   return entry.result;
 }
 
-export function setCached(key: string, element: Element): void {
+export function setCached(key: string, word: Word): void {
   combinationCache.set(key, {
-    result: element,
+    result: word,
     expiresAt: Date.now() + TTL_MS,
   });
 }

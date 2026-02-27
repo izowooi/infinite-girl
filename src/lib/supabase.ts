@@ -1,73 +1,69 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Element } from '@/types/game';
+import type { Word } from '@/types/game';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export async function getInitialElements(): Promise<Element[]> {
+export async function getInitialWords(): Promise<Word[]> {
   const { data, error } = await supabase
-    .from('elements')
+    .from('words')
     .select('*')
     .eq('is_initial', true)
     .order('created_at', { ascending: true });
 
   if (error) throw error;
-  return (data ?? []) as Element[];
+  return (data ?? []) as Word[];
 }
 
 export async function findCombination(
-  elementAId: string,
-  elementBId: string
-): Promise<Element | null> {
-  const [a, b] = [elementAId, elementBId].sort();
+  wordAId: string,
+  wordBId: string
+): Promise<Word | null> {
+  const [a, b] = [wordAId, wordBId].sort();
 
-  // combinations 조회
   const { data: combo, error: comboErr } = await supabase
     .from('combinations')
     .select('result_id')
-    .eq('element_a_id', a)
-    .eq('element_b_id', b)
+    .eq('word_a_id', a)
+    .eq('word_b_id', b)
     .eq('status', 'done')
     .maybeSingle();
 
   if (comboErr || !combo?.result_id) return null;
 
-  // result element 조회
-  const { data: element, error: elemErr } = await supabase
-    .from('elements')
+  const { data: word, error: wordErr } = await supabase
+    .from('words')
     .select('*')
     .eq('id', combo.result_id)
     .single();
 
-  if (elemErr || !element) return null;
-  return element as Element;
+  if (wordErr || !word) return null;
+  return word as Word;
 }
 
 export async function saveCombination(
-  elementAId: string,
-  elementBId: string,
-  result: Element
-): Promise<Element> {
-  const [a, b] = [elementAId, elementBId].sort();
+  wordAId: string,
+  wordBId: string,
+  result: Word
+): Promise<Word> {
+  const [a, b] = [wordAId, wordBId].sort();
 
-  // 같은 이름의 원소가 이미 있는지 확인
+  // 같은 이름의 단어가 이미 있는지 확인
   const { data: existing } = await supabase
-    .from('elements')
+    .from('words')
     .select('*')
     .eq('name', result.name)
     .maybeSingle();
 
-  let savedElement: Element;
+  let savedWord: Word;
 
   if (existing) {
-    // 이미 존재하는 원소 사용
-    savedElement = existing as Element;
+    savedWord = existing as Word;
   } else {
-    // 새 원소 삽입
     const { data: inserted, error: insertErr } = await supabase
-      .from('elements')
+      .from('words')
       .insert({
         id: result.id,
         name: result.name,
@@ -78,19 +74,18 @@ export async function saveCombination(
       .single();
 
     if (insertErr) throw insertErr;
-    savedElement = inserted as Element;
+    savedWord = inserted as Word;
   }
 
-  // combinations 테이블에 저장 (이미 있으면 무시)
   await supabase.from('combinations').upsert(
     {
-      element_a_id: a,
-      element_b_id: b,
-      result_id: savedElement.id,
+      word_a_id: a,
+      word_b_id: b,
+      result_id: savedWord.id,
       status: 'done',
     },
-    { onConflict: 'element_a_id,element_b_id' }
+    { onConflict: 'word_a_id,word_b_id' }
   );
 
-  return savedElement;
+  return savedWord;
 }

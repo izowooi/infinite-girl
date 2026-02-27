@@ -1,4 +1,4 @@
-export interface Element {
+export interface Word {
   id: string;
   name: string;
   emoji: string;
@@ -10,21 +10,21 @@ export interface Element {
 
 export interface Combination {
   id: string;
-  element_a_id: string;
-  element_b_id: string;
+  word_a_id: string;
+  word_b_id: string;
   result_id: string | null;
   status: 'pending' | 'generating' | 'done' | 'failed';
   created_at: string;
 }
 
 export interface CombineRequest {
-  elementAId: string;
-  elementBId: string;
-  elementAName: string;
-  elementBName: string;
+  wordAId: string;
+  wordBId: string;
+  wordAName: string;
+  wordBName: string;
 }
 
 export interface CombineResponse {
-  result: Element;
+  result: Word;
   isNew: boolean;
 }

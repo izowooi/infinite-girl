@@ -51,7 +51,7 @@ export async function generateCombination(
     response_format: {
       type: 'json_schema',
       json_schema: {
-        name: 'element_combination',
+        name: 'word_combination',
         strict: true,
         schema: {
           type: 'object',

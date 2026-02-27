@@ -1,22 +1,22 @@
 'use client';
 
 import { useDraggable } from '@dnd-kit/core';
-import type { Element } from '@/types/game';
+import type { Word } from '@/types/game';
 
-interface ElementCardProps {
-  element: Element;
+interface WordCardProps {
+  word: Word;
   isSelected?: boolean;
   onClick?: () => void;
   draggableId?: string;
 }
 
-export default function ElementCard({
-  element,
+export default function WordCard({
+  word,
   isSelected,
   onClick,
   draggableId,
-}: ElementCardProps) {
-  const id = draggableId ?? element.id;
+}: WordCardProps) {
+  const id = draggableId ?? word.id;
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id });
 
   const style = transform
@@ -42,8 +42,8 @@ export default function ElementCard({
         .filter(Boolean)
         .join(' ')}
     >
-      <span className="text-2xl leading-none">{element.emoji}</span>
-      <span className="text-xs font-medium text-slate-700 whitespace-nowrap">{element.name}</span>
+      <span className="text-2xl leading-none">{word.emoji}</span>
+      <span className="text-xs font-medium text-slate-700 whitespace-nowrap">{word.name}</span>
     </div>
   );
 }

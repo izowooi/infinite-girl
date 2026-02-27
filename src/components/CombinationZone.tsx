@@ -1,15 +1,15 @@
 'use client';
 
 import { useDroppable } from '@dnd-kit/core';
-import type { Element } from '@/types/game';
+import type { Word } from '@/types/game';
 
 interface SlotProps {
   index: 0 | 1;
-  element: Element | null;
+  word: Word | null;
   onClear: () => void;
 }
 
-function Slot({ index, element, onClear }: SlotProps) {
+function Slot({ index, word, onClear }: SlotProps) {
   const { isOver, setNodeRef } = useDroppable({ id: `slot-${index}` });
 
   return (
@@ -19,15 +19,15 @@ function Slot({ index, element, onClear }: SlotProps) {
         'flex flex-col items-center justify-center gap-1 rounded-2xl',
         'w-28 h-28 border-2 border-dashed transition-all duration-150',
         isOver ? 'border-purple-500 bg-purple-50 scale-105' : 'border-slate-300 bg-slate-50',
-        element ? 'border-solid border-purple-300 bg-purple-50' : '',
+        word ? 'border-solid border-purple-300 bg-purple-50' : '',
       ]
         .filter(Boolean)
         .join(' ')}
     >
-      {element ? (
+      {word ? (
         <>
-          <span className="text-3xl">{element.emoji}</span>
-          <span className="text-sm font-medium text-slate-700">{element.name}</span>
+          <span className="text-3xl">{word.emoji}</span>
+          <span className="text-sm font-medium text-slate-700">{word.name}</span>
           <button
             onClick={onClear}
             className="text-xs text-slate-400 hover:text-red-400 mt-1 transition-colors"
@@ -39,7 +39,7 @@ function Slot({ index, element, onClear }: SlotProps) {
         <span className="text-slate-300 text-sm">
           {index === 0 ? '첫 번째' : '두 번째'}
           <br />
-          원소
+          단어
         </span>
       )}
     </div>
@@ -47,7 +47,7 @@ function Slot({ index, element, onClear }: SlotProps) {
 }
 
 interface CombinationZoneProps {
-  slots: [Element | null, Element | null];
+  slots: [Word | null, Word | null];
   isLoading: boolean;
   onClearSlot: (index: 0 | 1) => void;
   onCombine: () => void;
@@ -64,9 +64,9 @@ export default function CombinationZone({
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="flex items-center gap-4">
-        <Slot index={0} element={slots[0]} onClear={() => onClearSlot(0)} />
+        <Slot index={0} word={slots[0]} onClear={() => onClearSlot(0)} />
         <span className="text-2xl text-slate-400 font-light">+</span>
-        <Slot index={1} element={slots[1]} onClear={() => onClearSlot(1)} />
+        <Slot index={1} word={slots[1]} onClear={() => onClearSlot(1)} />
       </div>
 
       <button

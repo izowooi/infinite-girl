@@ -10,13 +10,13 @@ export const runtime = 'edge';
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as CombineRequest;
-    const { elementAId, elementBId, elementAName, elementBName } = body;
+    const { wordAId, wordBId, wordAName, wordBName } = body;
 
-    if (!elementAId || !elementBId || !elementAName || !elementBName) {
-      return NextResponse.json({ error: '원소 ID와 이름이 필요합니다' }, { status: 400 });
+    if (!wordAId || !wordBId || !wordAName || !wordBName) {
+      return NextResponse.json({ error: '단어 ID와 이름이 필요합니다' }, { status: 400 });
     }
 
-    const cacheKey = getCombinationKey(elementAId, elementBId);
+    const cacheKey = getCombinationKey(wordAId, wordBId);
 
     // 1단계: 서버 인메모리 캐시 조회
     const cached = getCached(cacheKey);
@@ -25,16 +25,16 @@ export async function POST(req: NextRequest) {
     }
 
     // 2단계: Supabase DB 조회
-    const existing = await findCombination(elementAId, elementBId);
+    const existing = await findCombination(wordAId, wordBId);
     if (existing) {
       setCached(cacheKey, existing);
       return NextResponse.json({ result: existing, isNew: false } satisfies CombineResponse);
     }
 
     // 3단계: OpenAI API로 새 조합 생성
-    const generated = await generateCombination(elementAName, elementBName);
+    const generated = await generateCombination(wordAName, wordBName);
 
-    const newElement = {
+    const newWord = {
       id: uuidv4(),
       name: generated.name,
       emoji: generated.emoji,
@@ -44,13 +44,13 @@ export async function POST(req: NextRequest) {
       created_at: new Date().toISOString(),
     };
 
-    // 4단계: Supabase에 저장 (실제 저장된 element 반환)
-    const savedElement = await saveCombination(elementAId, elementBId, newElement);
+    // 4단계: Supabase에 저장 (실제 저장된 word 반환)
+    const savedWord = await saveCombination(wordAId, wordBId, newWord);
 
     // 5단계: 캐시에 저장
-    setCached(cacheKey, savedElement);
+    setCached(cacheKey, savedWord);
 
-    return NextResponse.json({ result: savedElement, isNew: true } satisfies CombineResponse);
+    return NextResponse.json({ result: savedWord, isNew: true } satisfies CombineResponse);
   } catch (error) {
     console.error('조합 API 오류:', error);
     return NextResponse.json({ error: '조합 생성에 실패했습니다' }, { status: 500 });

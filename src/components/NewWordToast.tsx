@@ -1,18 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { Element } from '@/types/game';
+import type { Word } from '@/types/game';
 
-interface NewElementToastProps {
-  element: Element | null;
+interface NewWordToastProps {
+  word: Word | null;
   onClose: () => void;
 }
 
-export default function NewElementToast({ element, onClose }: NewElementToastProps) {
+export default function NewWordToast({ word, onClose }: NewWordToastProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (element) {
+    if (word) {
       setVisible(true);
       const timer = setTimeout(() => {
         setVisible(false);
@@ -20,9 +20,9 @@ export default function NewElementToast({ element, onClose }: NewElementToastPro
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [element, onClose]);
+  }, [word, onClose]);
 
-  if (!element) return null;
+  if (!word) return null;
 
   return (
     <div
@@ -34,10 +34,10 @@ export default function NewElementToast({ element, onClose }: NewElementToastPro
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4',
       ].join(' ')}
     >
-      <span className="text-3xl">{element.emoji}</span>
+      <span className="text-3xl">{word.emoji}</span>
       <div>
         <p className="text-xs font-medium opacity-80">첫 발견!</p>
-        <p className="text-lg font-bold">{element.name}</p>
+        <p className="text-lg font-bold">{word.name}</p>
       </div>
       <span className="text-xl ml-1">🎉</span>
     </div>
